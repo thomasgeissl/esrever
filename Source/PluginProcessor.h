@@ -58,8 +58,10 @@ public:
     
     // Our parameters
     AudioParameterInt* _lengthParam;
+    AudioParameterFloat* _fadeInLengthParam;
+    AudioParameterFloat* _fadeOutLengthParam;
     AudioParameterFloat* _wetParam;
-    
+
     int _recordPosition;
     int _playbackPosition;
     

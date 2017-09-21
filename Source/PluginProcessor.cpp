@@ -22,6 +22,8 @@ _useFirstBuffer(true)
 {
     
     addParameter (_lengthParam  = new AudioParameterInt ("length",  "Length", 50, 5000, 1000));
+    addParameter (_fadeInLengthParam  = new AudioParameterFloat ("fadeInLength",  "Fade In Length", .5, 0, .3));
+    addParameter (_fadeOutLengthParam  = new AudioParameterFloat ("fadeOutLength",  "Fade Out Length", .5, 0, .3));
     addParameter (_wetParam = new AudioParameterFloat ("wet", "Wet", 0.0f, 1.0f, 0.5f));
     
     _firstSampleBuffer.setSize(2, (float)(_lengthParam->get())/1000*44100);
@@ -165,6 +167,8 @@ void EsreverAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
         _recordPosition = 0;
     }
     
+    auto playBackBufferSize = _firstSampleBuffer.getNumSamples();
+    float fadeAmount = 1;
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
 
@@ -173,7 +177,17 @@ void EsreverAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
         float* channelData = buffer.getWritePointer (channel);
 
         for(int i = 0; i < numberOfSamples; i++){
-            channelData[i] = (1-_wetParam->get()) * channelData[i] + _wetParam->get() * playBackData[_playbackPosition + i];
+            auto currentPlayBackPosition = _playbackPosition + i;
+
+            auto remainingSamplesToPlayBack = playBackBufferSize - currentPlayBackPosition;
+            auto fadeOutLength = playBackBufferSize * _fadeOutLengthParam->get();
+            auto fadeInLength = playBackBufferSize * _fadeInLengthParam->get();
+            if(remainingSamplesToPlayBack > fadeInLength){
+                fadeAmount = (float)(currentPlayBackPosition)/fadeInLength;
+            }else if(remainingSamplesToPlayBack < fadeOutLength){
+                fadeAmount = (float)(remainingSamplesToPlayBack)/fadeOutLength;
+            }
+            channelData[i] = (1-_wetParam->get()) * channelData[i] + fadeAmount * _wetParam->get() * playBackData[_playbackPosition + i];
         }
 
 //        buffer.copyFrom(channel, 0, *playBackBuffer, channel, _playbackPosition, numberOfSamples);

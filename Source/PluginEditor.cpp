@@ -88,8 +88,14 @@ EsreverAudioProcessorEditor::~EsreverAudioProcessorEditor()
 //==============================================================================
 void EsreverAudioProcessorEditor::paint (Graphics& g)
 {
-    g.setColour (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+    g.setColour (getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
     g.fillAll();
+    
+    Rectangle<int> r(getLocalBounds());
+    g.setColour(getLookAndFeel().findColour(Slider::thumbColourId));
+    int width = (float)(processor._playbackPosition)/processor._firstSampleBuffer.getNumSamples() * r.getWidth();
+    int height = 5;
+    g.drawRect(0, r.getHeight()-height, width, height);
 }
 
 void EsreverAudioProcessorEditor::resized()
@@ -102,5 +108,5 @@ void EsreverAudioProcessorEditor::resized()
     _wetSlider->setBounds(wetArea.removeFromRight(wetArea.getWidth()/4*3));
 }
 void EsreverAudioProcessorEditor::timerCallback(){
-
+    repaint();
 }
