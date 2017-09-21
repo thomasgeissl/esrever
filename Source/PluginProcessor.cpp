@@ -21,16 +21,13 @@ _playbackPosition(0),
 _useFirstBuffer(true)
 {
     
-//    addParameter (_lengthParam  = new AudioParameterInt ("length",  "Length", 0, 44100*5, 44100*.3));
-    addParameter (_lengthParam  = new AudioParameterInt ("length",  "Length", 0, 5000, 1000));
+    addParameter (_lengthParam  = new AudioParameterInt ("length",  "Length", 50, 5000, 1000));
     addParameter (_wetParam = new AudioParameterFloat ("wet", "Wet", 0.0f, 1.0f, 0.5f));
     
     _firstSampleBuffer.setSize(2, (float)(_lengthParam->get())/1000*44100);
     _secondSampleBuffer.setSize(2, (float)(_lengthParam->get())/1000*44100);
     _firstSampleBuffer.clear();
     _secondSampleBuffer.clear();
-
-
 }
 
 EsreverAudioProcessor::~EsreverAudioProcessor()
@@ -180,7 +177,6 @@ void EsreverAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
         }
 
 //        buffer.copyFrom(channel, 0, *playBackBuffer, channel, _playbackPosition, numberOfSamples);
-
     }
     _recordPosition += numberOfSamples;
     _playbackPosition += numberOfSamples;

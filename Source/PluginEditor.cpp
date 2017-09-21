@@ -58,31 +58,27 @@ EsreverAudioProcessorEditor::EsreverAudioProcessorEditor (EsreverAudioProcessor&
 AudioProcessorEditor (&p),
 processor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    
-    // add some sliders..
     addAndMakeVisible (_lengthSlider = new ParameterSlider (*p._lengthParam));
     _lengthSlider->setSliderStyle (Slider::Rotary);
+    _lengthSlider->setTextValueSuffix(" ms");
     
     addAndMakeVisible (_wetSlider = new ParameterSlider (*p._wetParam));
     _wetSlider->setSliderStyle (Slider::Rotary);
     
-    // add some labels for the sliders..
-    _lengthLabel.attachToComponent (_lengthSlider, false);
-    _lengthLabel.setFont (Font (11.0f));
-    _lengthLabel.setColour(Label::textColourId,Colours::black);
+    _lengthLabel.attachToComponent (_lengthSlider, true);
+    _lengthLabel.setText("Length", dontSendNotification);
 
     
-    _wetLabel.attachToComponent (_wetSlider, false);
-    _wetLabel.setFont (Font (11.0f));
-    _wetLabel.setColour(Label::textColourId,Colours::black);
+    _wetLabel.attachToComponent (_wetSlider, true);
+    _wetLabel.setText("Wet", dontSendNotification);
     
-    setResizable(true, true);
-    setSize (400, 300);
+    
+    setResizable(false, false);
+    setSize(400, 200);
     startTimerHz (30);
     
-    setLookAndFeel(new LookAndFeel_V2());
+    auto lookAndFeel = new LookAndFeel_V4();
+    setLookAndFeel(lookAndFeel);
 }
 
 EsreverAudioProcessorEditor::~EsreverAudioProcessorEditor()
@@ -92,17 +88,18 @@ EsreverAudioProcessorEditor::~EsreverAudioProcessorEditor()
 //==============================================================================
 void EsreverAudioProcessorEditor::paint (Graphics& g)
 {
-    g.fillAll (Colours::whitesmoke);    
+    g.setColour (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+    g.fillAll();
 }
 
 void EsreverAudioProcessorEditor::resized()
 {
     Rectangle<int> r (getLocalBounds().reduced (8));
+    Rectangle<int> lengthArea(r.getX(), r.getY(), r.getWidth(), r.getHeight()/2);
+    Rectangle<int> wetArea(r.getX(), r.getY()+r.getHeight()/2, r.getWidth(), r.getHeight()/2);
     
-    r.removeFromTop (30);
-    Rectangle<int> sliderArea (r.removeFromTop (50));
-    _lengthSlider->setBounds (sliderArea.removeFromLeft (jmin (180, sliderArea.getWidth() / 2)));
-    _wetSlider->setBounds (sliderArea.removeFromLeft (jmin (180, sliderArea.getWidth())));
+    _lengthSlider->setBounds(lengthArea.removeFromRight(lengthArea.getWidth()/4*3));
+    _wetSlider->setBounds(wetArea.removeFromRight(wetArea.getWidth()/4*3));
 }
 void EsreverAudioProcessorEditor::timerCallback(){
 
