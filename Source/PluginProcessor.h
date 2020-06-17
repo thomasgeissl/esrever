@@ -66,8 +66,8 @@ public:
     int _playbackPosition;
     
     bool _useFirstBuffer;
-    AudioSampleBuffer _firstSampleBuffer;
-    AudioSampleBuffer _secondSampleBuffer;
+    AudioSampleBuffer _ping;
+    AudioSampleBuffer _pong;
 
     bool _playback;
 private:

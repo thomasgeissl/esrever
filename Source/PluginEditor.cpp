@@ -11,65 +11,26 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
-// This is a handy slider subclass that controls an AudioProcessorParameter
-// (may move this class into the library itself at some point in the future..)
-class EsreverAudioProcessorEditor::ParameterSlider :
-public Slider,
-private Timer
-{
-public:
-    ParameterSlider (AudioProcessorParameter& p)
-    : Slider (p.getName (256)), param (p)
-    {
-        setRange (0.0, 1.0, 0.0);
-        startTimerHz (30);
-        updateSliderPos();
-    }
-    
-    void valueChanged() override
-    {
-        param.setValueNotifyingHost ((float) Slider::getValue());
-    }
-    
-    void timerCallback() override       { updateSliderPos(); }
-    
-    void startedDragging() override     { param.beginChangeGesture(); }
-    void stoppedDragging() override     { param.endChangeGesture();   }
-    
-    double getValueFromText (const String& text) override   { return param.getValueForText (text); }
-    String getTextFromValue (double value) override         { return param.getText ((float) value, 1024); }
-    
-    void updateSliderPos()
-    {
-        const float newValue = param.getValue();
-        
-        if (newValue != (float) Slider::getValue() && ! isMouseButtonDown())
-            Slider::setValue (newValue);
-    }
-    
-    AudioProcessorParameter& param;
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParameterSlider)
-};
 
 //==============================================================================
 EsreverAudioProcessorEditor::EsreverAudioProcessorEditor (EsreverAudioProcessor& p) :
 AudioProcessorEditor (&p),
-processor (p)
+processor (p),
+_lengthSlider(std::make_unique<ParameterSlider>(*p._lengthParam)),
+_wetSlider(std::make_unique<ParameterSlider>(*p._wetParam))
 {
-    addAndMakeVisible (_lengthSlider = new ParameterSlider (*p._lengthParam));
+    addAndMakeVisible (_lengthSlider.get());
     _lengthSlider->setSliderStyle (Slider::Rotary);
     _lengthSlider->setTextValueSuffix(" ms");
     
-    addAndMakeVisible (_wetSlider = new ParameterSlider (*p._wetParam));
+    addAndMakeVisible (_wetSlider.get());
     _wetSlider->setSliderStyle (Slider::Rotary);
     
-    _lengthLabel.attachToComponent (_lengthSlider, true);
+    _lengthLabel.attachToComponent (_lengthSlider.get(), true);
     _lengthLabel.setText("Length", dontSendNotification);
 
     
-    _wetLabel.attachToComponent (_wetSlider, true);
+    _wetLabel.attachToComponent (_wetSlider.get(), true);
     _wetLabel.setText("Wet", dontSendNotification);
     
     
@@ -93,7 +54,7 @@ void EsreverAudioProcessorEditor::paint (Graphics& g)
     
     Rectangle<int> r(getLocalBounds());
     g.setColour(getLookAndFeel().findColour(Slider::thumbColourId));
-    int width = (float)(processor._playbackPosition)/processor._firstSampleBuffer.getNumSamples() * r.getWidth();
+    int width = (float)(processor._playbackPosition)/processor._ping.getNumSamples() * r.getWidth();
     int height = 5;
     g.drawRect(0, r.getHeight()-height, width, height);
 }

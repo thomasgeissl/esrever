@@ -26,10 +26,10 @@ _useFirstBuffer(true)
     addParameter (_fadeOutLengthParam  = new AudioParameterFloat ("fadeOutLength",  "Fade Out Length", .5, 0, .3));
     addParameter (_wetParam = new AudioParameterFloat ("wet", "Wet", 0.0f, 1.0f, 0.5f));
     
-    _firstSampleBuffer.setSize(2, (float)(_lengthParam->get())/1000*44100);
-    _secondSampleBuffer.setSize(2, (float)(_lengthParam->get())/1000*44100);
-    _firstSampleBuffer.clear();
-    _secondSampleBuffer.clear();
+    _ping.setSize(2, (float)(_lengthParam->get())/1000*44100);
+    _pong.setSize(2, (float)(_lengthParam->get())/1000*44100);
+    _ping.clear();
+    _pong.clear();
 }
 
 EsreverAudioProcessor::~EsreverAudioProcessor()
@@ -128,12 +128,12 @@ bool EsreverAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 
 void EsreverAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    if(_lengthParam->get()*44.1 > _firstSampleBuffer.getNumSamples()+ 100 || _lengthParam->get()*44.1 < _firstSampleBuffer.getNumSamples()- 100){
+    if(_lengthParam->get()*44.1 > _ping.getNumSamples()+ 100 || _lengthParam->get()*44.1 < _ping.getNumSamples()- 100){
         auto newBufferSize = _lengthParam->get()*44.1;
-        _firstSampleBuffer.setSize(2, newBufferSize);
-        _secondSampleBuffer.setSize(2, newBufferSize);
-        _firstSampleBuffer.clear();
-        _secondSampleBuffer.clear();
+        _ping.setSize(2, newBufferSize);
+        _pong.setSize(2, newBufferSize);
+        _ping.clear();
+        _pong.clear();
         return;
     }
     
@@ -149,12 +149,12 @@ void EsreverAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
     AudioSampleBuffer *playBackBuffer;
     
     if(_useFirstBuffer){
-        sampleBuffer = &_firstSampleBuffer;
-        playBackBuffer = &_secondSampleBuffer;
+        sampleBuffer = &_ping;
+        playBackBuffer = &_pong;
         
     }else{
-        sampleBuffer = &_secondSampleBuffer;
-        playBackBuffer = &_firstSampleBuffer;
+        sampleBuffer = &_pong;
+        playBackBuffer = &_ping;
     }
     
     if(_recordPosition + numberOfSamples >= sampleBuffer->getNumSamples()){
@@ -167,7 +167,7 @@ void EsreverAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
         _recordPosition = 0;
     }
     
-    auto playBackBufferSize = _firstSampleBuffer.getNumSamples();
+    auto playBackBufferSize = _ping.getNumSamples();
     float fadeAmount = 1;
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
